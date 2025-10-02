@@ -1,18 +1,22 @@
-using FastEndpoints;
+using MediatR;
+using Microsoft.AspNetCore.Mvc;
 using NiceToMeetYouApi.Handler.FormEmails;
-using NiceToMeetYouApi.Models.FormEmails;
 
 namespace NiceToMeetYouApi.Controllers;
 
-public sealed class ComputeEndpoint(IFormEmailsHandler handler)
-    : Endpoint<FormEmailRequest, FormEmailResponse>
+[ApiController]
+[Route("api/[controller]")]
+public sealed class EmailController(IMediator mediator) : ControllerBase
 {
-    public override void Configure() => Post("/Email/Form");
-
-    public override Task HandleAsync(FormEmailRequest req, CancellationToken ct)
+    [HttpPost("form")]
+    public async Task<ActionResult<FormEmail.FormEmailResponse>> PostFormEmail(
+        [FromBody] FormEmail.FormEmailRequest request,
+        CancellationToken ct)
     {
-        var response = handler.Execute(req, ct);
+        var emails = await mediator.Send(request, ct);
 
+        
 
+        return Ok(response);
     }
 }
