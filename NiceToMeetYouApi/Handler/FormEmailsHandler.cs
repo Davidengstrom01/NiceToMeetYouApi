@@ -1,8 +1,10 @@
-﻿namespace NiceToMeetYouApi.Handler.FormEmails;
+using MediatR;
+
+namespace NiceToMeetYouApi.Handler.FormEmails;
 
 public class FormEmail
 {
-    public class FormEmailRequest
+    public class FormEmailRequest : IRequest<FormEmailResponse>
     {
         public required string FirstName { get; set; }
         public required string LastName  { get; set; }
@@ -11,16 +13,16 @@ public class FormEmail
 
     public class FormEmailResponse
     {
-        public List<string>? Emails { get; set; }
+        public List<string> Emails { get; init; } = new();
     }
 
-    public sealed class FormEmailHandler
+    public sealed class FormEmailHandler : IRequestHandler<FormEmailRequest, FormEmailResponse>
     {
-        public FormEmailResponse Execute(FormEmailRequest input, CancellationToken ct)
+        public Task<FormEmailResponse> Handle(FormEmailRequest request, CancellationToken cancellationToken)
         {
-            var firstName = input.FirstName.Trim().ToLowerInvariant();
-            var lastName  = input.LastName.Trim().ToLowerInvariant();
-            var domain    = input.Domain.Trim().ToLowerInvariant();
+            var firstName = request.FirstName.Trim().ToLowerInvariant();
+            var lastName  = request.LastName.Trim().ToLowerInvariant();
+            var domain    = request.Domain.Trim().ToLowerInvariant();
 
             var firstInitial = firstName[0].ToString();
             var lastInitial  = lastName[0].ToString();
@@ -41,15 +43,18 @@ public class FormEmail
 
             var seen = new HashSet<string>(StringComparer.Ordinal);
             var result = new List<string>(emails.Count);
-            foreach (var e in emails)
+            foreach (var email in emails)
             {
-                if (seen.Add(e)) result.Add(e);
+                if (seen.Add(email))
+                {
+                    result.Add(email);
+                }
             }
 
-            return new FormEmailResponse
+            return Task.FromResult(new FormEmailResponse
             {
                 Emails = result
-            };
+            });
         }
     }
 }
